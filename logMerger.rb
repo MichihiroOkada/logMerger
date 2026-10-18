@@ -81,8 +81,8 @@ class LogMerger
     timestamp = nil
     timestamp_format_list.each do |timestamp_format|
       if (match = timestamp_format[:regexp].match(line))
-          timestamp_text = match[1]
-          timestamp = Time.strptime(timestamp_text, timestamp_format[:format])
+        timestamp_text = match[1]
+        timestamp = Time.strptime(timestamp_text, timestamp_format[:format])
         return timestamp_text, timestamp, match[2], match[3]
       end
     end
@@ -93,7 +93,7 @@ class LogMerger
   # ============================================================
   # 最新ファイルの選択
   # ============================================================
-  def find_latest_files()
+  def find_latest_files
     logfiles = {}
 
     Dir.glob("#{@parseroot}/**/*.log").each do |logfile|
@@ -140,7 +140,7 @@ class LogMerger
   # ============================================================
   # 最新ファイルのコピー
   # ============================================================
-  def copy_latest_files()
+  def copy_latest_files
     success = 0
 
     @selected.each do |path|
@@ -224,7 +224,7 @@ class LogMerger
   # ============================================================
   # 時系列マージ
   # ============================================================
-  def merge_logs()
+  def merge_logs
     return unless @merge
 
     parsed_files = []
@@ -237,15 +237,13 @@ class LogMerger
         all_entries.concat(parsed[:entries])
 
         write_log(
-          "[PARSE] #{File.basename(item)}: " \
-          "#{parsed[:entries].size} 件"
+          "[PARSE] #{File.basename(item)}: #{parsed[:entries].size} 件"
         )
 
       rescue SystemCallError, IOError, EncodingError,
              ArgumentError => e
         write_log(
-          "[ERROR] 読み込み・解析失敗: " \
-          "#{File.basename(item)}: #{e.class}: #{e.message}",
+          "[ERROR] 読み込み・解析失敗: #{File.basename(item)}: #{e.class}: #{e.message}",
           true
         )
       end
