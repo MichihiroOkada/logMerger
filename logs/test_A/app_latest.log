@@ -1,0 +1,6 @@
+Test A application log
+Version: 1.2.0
+Device: A-001
+2026/10/17 20:27:10  A started
+2026/10/17 20:27:25  A received request 42
+2026/10/17 20:27:40  A completed request 42

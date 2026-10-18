@@ -1,0 +1,6 @@
+Test D system log
+Host: target-D
+Note: same timestamp as another file is intentional
+2026/10/17 20:27:20  D heartbeat received
+2026/10/17 20:27:35  D timeout warning
+2026/10/17 20:28:00  D service stopped

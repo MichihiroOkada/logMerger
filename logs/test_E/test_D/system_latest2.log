@@ -1,0 +1,6 @@
+Test D system log
+Host: target-D
+Note: same timestamp as another file is intentional
+2026/10/17 23:27:20  oka heartbeat received
+2026/10/17 23:27:35  oka timeout warning
+2026/10/17 23:28:00  oka service stopped

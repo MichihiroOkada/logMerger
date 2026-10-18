@@ -1,0 +1,6 @@
+Test C runtime log
+Environment: integration
+2026/10/17 20:27:15  C initialized
+2026/10/17 20:27:35  C received signal
+    detail: signal source = controller
+2026/10/17 20:27:50  C shutdown requested

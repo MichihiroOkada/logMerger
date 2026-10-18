@@ -1,0 +1,5 @@
+Test E events
+This header contains no timestamp.
+2026/10/17 20:26:59  E pre-start diagnostic
+2026/10/17 20:27:10  E startup check
+2026/10/17 20:27:55  E test completed

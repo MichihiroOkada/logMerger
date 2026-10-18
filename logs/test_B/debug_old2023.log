@@ -1,0 +1,7 @@
+Test B old debug log
+2026/10/23 20:21:00  OLD B message
+2026/10/23 20:27:20  B warning: retrying
+2026/10/23 20:27:35  B error: operation failed
+    at Worker.run (worker.cpp:120)
+    at Thread.start (thread.cpp:55)
+2026/10/23 20:27:45  B recovery started

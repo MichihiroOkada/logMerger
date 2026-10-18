@@ -1,0 +1,4 @@
+Test A - older log
+Version: 1.0
+2026/10/23 20:20:00  OLD A event (should not be selected)
+2026/10/23 20:20:10  OLD A event 2
