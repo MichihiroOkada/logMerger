@@ -1,4 +1,3 @@
-
 require 'fileutils'
 require 'time'
 require 'optparse'
@@ -13,9 +12,6 @@ OVERWRITE = true
 LOG_ENCODING = 'bom|utf-8'
 MERGED_FILENAME = 'merged_logs.log'
 SOURCE_FILE_LENGTH = 30
-# 行頭が YYYY/MM/DD HH:MM:SS の形式なら時刻付きログ
-TIMESTAMP_PATTERN =
-  /\A(\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2})(\s+)(.*)\z/
 
 class LogMerger
   def initialize(options)
@@ -47,8 +43,10 @@ class LogMerger
   # ============================================================
   # ログ出力
   # ============================================================
-  def write_log(message)
-    return unless @verbose
+  def write_log(message, iserror = false)
+    if !iserror
+      return unless @verbose
+    end
     line = "[#{Time.now.strftime('%Y-%m-%d %H:%M:%S')}] #{message}"
     puts line
 
@@ -59,6 +57,37 @@ class LogMerger
     rescue SystemCallError, IOError => e
       warn "ログ出力エラー: #{e.message}"
     end
+  end
+
+  # ============================================================
+  # 時刻フォーマットチェック
+  # ============================================================
+  def match_for_timestamp(line)
+    timestamp_format_list = [
+      {
+        # YYYY/MM/DD HH:MM:SS
+        regexp: /\A(\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2})(\s+)(.*)\z/, 
+        format: '%Y/%m/%d %H:%M:%S'
+      },
+      {
+        # HH:MM:SS YYYY/MM/DD
+        regexp: /\A(\d{2}:\d{2}:\d{2} \d{4}\/\d{2}\/\d{2})(\s+)(.*)\z/, 
+        format: '%H:%M:%S %Y/%m/%d'
+      }
+
+    ]
+
+    timestamp_text = nil
+    timestamp = nil
+    timestamp_format_list.each do |timestamp_format|
+      if (match = timestamp_format[:regexp].match(line))
+          timestamp_text = match[1]
+          timestamp = Time.strptime(timestamp_text, timestamp_format[:format])
+        return timestamp_text, timestamp, match[2], match[3]
+      end
+    end
+
+    return timestamp_text, timestamp, nil, nil
   end
 
   # ============================================================
@@ -134,7 +163,7 @@ class LogMerger
         success += 1
 
       rescue SystemCallError, IOError => e
-        write_log("[ERROR] コピー失敗: #{path}: #{e.message}")
+        write_log("[ERROR] コピー失敗: #{path}: #{e.message}", true)
       end
     end
 
@@ -150,49 +179,47 @@ class LogMerger
     current = nil
     sequence = 0
     parsed_data = {}
-  
+
     File.open(item, "r:#{LOG_ENCODING}") do |file|
       file.each_line do |raw_line|
         #line = raw_line.sub(/\r?\n\z/, '')
         line = raw_line.chomp
-      
-        if (match = TIMESTAMP_PATTERN.match(line))
-          timestamp_text = match[1]
-          timestamp = Time.strptime(timestamp_text, '%Y/%m/%d %H:%M:%S')
+
+        timestamp_text, timestamp, spacing, message = match_for_timestamp(line)
+        if (timestamp_text)
           sequence += 1
-        
+
           current = {
             time: timestamp,
             source: File.basename(item),
             sequence: sequence,
             timestamp_text: timestamp_text,
-            spacing: match[2],
-            message: match[3],
+            spacing: spacing,
+            message: message,
             continuation: []
           }
-        
+
           entries << current
-        
+
         elsif current
           # 時刻なしの行は直前のログの続きとして保持
           current[:continuation] << line
-        
+
         else
           # 最初の時刻付きログより前はヘッダ
           headers << line
         end
       end
     end
-  
+
     parsed_data = { 
       source:File.basename(item),
       headers: headers,
       entries: entries
     } 
-  
+
     return parsed_data
   end
-
 
   # ============================================================
   # 時系列マージ
@@ -218,7 +245,8 @@ class LogMerger
              ArgumentError => e
         write_log(
           "[ERROR] 読み込み・解析失敗: " \
-          "#{File.basename(item)}: #{e.class}: #{e.message}"
+          "#{File.basename(item)}: #{e.class}: #{e.message}",
+          true
         )
       end
     end
@@ -270,7 +298,7 @@ class LogMerger
 
       write_log("[MERGE] #{all_entries.size} 件 -> #{@mergedlogfile}")
     rescue SystemCallError, IOError => e
-      write_log("[ERROR] マージ結果の保存失敗: #{e.message}")
+      write_log("[ERROR] マージ結果の保存失敗: #{e.message}", true)
     end
   end
 
